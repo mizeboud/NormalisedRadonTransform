@@ -1,0 +1,26 @@
+Python packages installed for NERD
+
+# Required packages
+python version <3.10 (advised: 3.9)
+earthengine-api
+numpy
+pandas
+scipy
+scikit-image (for skimage.color)
+pathos (for multiprocessing)
+xarray
+rioxarray
+
+# Use of python built-in packages
+os
+time
+configparser
+json
+sys
+
+
+# KNOWN ISSUE: import error with rioxarray due to libpoppler.91 dynamic library
+# SOLUTION: check conda channel priority and set it to 'strict'
+conda config --describe channel_priority
+conda config --set channel_priority strict
+conda update rioxarray -c conda-forge
