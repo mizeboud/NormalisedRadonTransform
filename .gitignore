@@ -1,0 +1,4 @@
+# cache files/dirs
+.DS_store
+matlab/.DS_store
+matlab/functions/.DS_store
