@@ -1,0 +1,43 @@
+{
+    "L7": {
+        "long_name": "LandSat 7",
+        "window_size(m)_threshold": {
+            "150": 0.027,
+            "300": 0.032,
+            "750": 0.037,
+            "990": 0.035
+        }
+    },
+    "L8": {
+        "long_name": "LandSat 8",
+        "window_size(m)_threshold": {
+            "150": 0.048,
+            "300": 0.051,
+            "750": 0.065
+        }
+    },
+    "RADARSAT": {
+        "long_name": "RAMP Radarsat",
+        "window_size(m)_threshold": {
+            "1000": 0.033
+        }
+    },
+    "S1": {
+        "long_name": "Sentinel 1",
+        "window_size(m)_threshold": {
+            "1000": 0.034,
+            "150": 0.057,
+            "300": 0.05,
+            "750": 0.044
+        }
+    },
+    "S2": {
+        "long_name": "Sentinel 2",
+        "window_size(m)_threshold": {
+            "150": 0.046,
+            "300": 0.04,
+            "750": 0.039,
+            "900": 0.04
+        }
+    }
+}
