@@ -2,3 +2,5 @@
 .DS_store
 matlab/.DS_store
 matlab/functions/.DS_store
+python/scripts/.ipynb_checkpoints/
+
