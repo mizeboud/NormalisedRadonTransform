@@ -44,10 +44,10 @@ save_mat = true;
 
 save_crevSig = true;
 save_alpha_c = true;
-save_D = true;
-save_dmg = true;
-save_Dalpha = true;
-save_Dtheta = true;
+save_D = false;
+save_dmg = false;
+save_Dalpha = false;
+save_Dtheta = false;
 
 %% Process img and store output in .mat and geotiffs
 
@@ -72,7 +72,7 @@ if ~exist([outPath outputfile])
     I = INAN;
     
 
-    %% Radon-transform
+    %% Normalised Radon-transform
     tic
     fprintf('processing Radon Transform over imagery \n');
     fprintf(['using square blocks of ' num2str(blockSiz) ' meter wide \n\n']); 
