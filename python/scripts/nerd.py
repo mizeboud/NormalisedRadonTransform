@@ -295,7 +295,7 @@ def cut_img_to_windows(img_gray,wsize):
     windows = rolling_da.stack(sample=["x", "y"],)
     windows = windows.dropna(dim="sample",how="any")
     
-    print(windows.dims,windows.shape)
+    print('.. img of {} to {}'.format(img_gray.shape,windows.shape) )
 
     windows_1D = windows # (x,y,sample)
     windows_1D.attrs["window_size"] = wsize

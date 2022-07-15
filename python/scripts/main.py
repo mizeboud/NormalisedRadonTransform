@@ -114,8 +114,7 @@ def main(configFile,imageFile):
         pool.clear()    
 
 
-        print('.. done with pool.map. Output array :',type(df_out),df_out.shape)      
-        print("--- %s seconds ---" % (time.time() - start_time))
+        print('.. done with pool.map after: {:.2f}min'.format((time.time() - start_time)/60) )
 
 
         ''' -------
@@ -139,7 +138,7 @@ def main(configFile,imageFile):
 
         # back to 2D
         da_result = da_result.unstack('sample').transpose("y","x","out")
-        print(da_result.shape)
+        print('..Reshaped output {} back to (x,y,out): {}'.format(df_out.shape,da_result.shape))
         # da_result.attrs
 
         da_result.attrs['window_range(m)'] = window_range
@@ -152,7 +151,7 @@ def main(configFile,imageFile):
         -----------'''
         da_result.to_netcdf(os.path.join(outPath,fname_out+'.nc'))
 
-        print(' ----- raw output data saved to {}{}------ '.format(outPath,fname_out))
+        print('.. output data saved to {}{}------ '.format(outPath,fname_out))
 
         ''' -------
         Processing of output 
