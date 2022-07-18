@@ -61,7 +61,7 @@ switch CASES(C)
         
 end
     
-RT = radoNan(window);
+RT = radon(window);
 RTnorm = radoNorm(window); 
 
 
@@ -251,8 +251,8 @@ switch CASES(C)
 end
 
 % -- calc RT
-RT = radoNan(window);
-RTnorm = radoNorm(window); % DEZE MOET HET ZIJN
+RT = radon(window);
+RTnorm = radoNorm(window); 
     
 
 figName = ['normalised_radon_schematic_' char(CASES(C))];
