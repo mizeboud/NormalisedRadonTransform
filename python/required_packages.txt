@@ -18,6 +18,10 @@ configparser
 json
 sys
 
+# used for post-processing
+geopandas
+cartopy
+geetools
 
 # KNOWN ISSUE: import error with rioxarray due to libpoppler.91 dynamic library
 # SOLUTION: check conda channel priority and set it to 'strict'
