@@ -10,7 +10,7 @@ ee.Initialize()
         Configuration
 -------------------------------------------------------------- '''
 
-configPath = '/Users/tud500158/Library/Mobile Documents/com~apple~CloudDocs/Documents/Documents - TUD500158/PhD/CrevasseDetection/radonTransform/config_files'
+configPath = '/Users/tud500158/Library/Mobile Documents/com~apple~CloudDocs/Documents/Documents - TUD500158/PhD/CrevasseDetection/NormalisedRadonTransform/config_files'
 # configPath = '/net/labdata/maaike/NERD/python/config_files'
 configFile = 'config_GEE_export_S1.ini'
 config = configparser.ConfigParser()
@@ -28,6 +28,7 @@ bnds = config['DATA']['bnds']
 CRS = config['DATA']['CRS']
 scale = int(config['DATA']['imRes']) # test scale
 clip_coast = True if config['DATA']['clip_coast'] == 'True' else False
+start_export = True if config['DATA']['start_export'] == 'True' else False
 
 try:
     tileNums = config['DATA']['tileNums']
@@ -47,6 +48,7 @@ fCol_relorbs_list = relorbs.get_S1_relorb_ids_list(t_strt, t_end, bnds=bnds, mod
 if tileNums is not None:
     print('Selected {} relorbs for period {} to {}, and tileNums {}'.format(len(fCol_relorbs_list),t_strt,t_end,tileNums))
     relorb_list_fname = 'List_relorbs_S1_'+mode+'_'+bnds+'_'+t_strt+'_'+t_end+'_tileNums'+str(tileNums)+'.txt'
+    # relorb_list_fname = 'List_relorbs_S1_'+mode+'_'+bnds+'_'+t_strt+'_'+t_end+'_tileNums-Ross.txt'
 else:
     print('Selected {} relorbs for period {} to {}'.format(len(fCol_relorbs_list),t_strt,t_end))
     relorb_list_fname = 'List_relorbs_S1_'+mode+'_'+bnds+'_'+t_strt+'_'+t_end+'.txt'
@@ -69,14 +71,16 @@ with open(os.path.join(path2files,relorb_list_fname), 'r') as f:
 
     
 im_task_list = []
+# relorbs_geom_flist=[]  # list with geometries as features
 print('.. Export to gcloud bucket ', my_bucket)
 for i in range(0,len(fCol_relorbs_list)):
     # get img
     imName = img_id_load[i] # select single img id from orbits_to_use
     eeImg = ee.Image('COPERNICUS/S1_GRD/' + imName) 
-    eeImg_meta = eeImg.getInfo() # reads metadata
+    # eeImg_meta = eeImg.getInfo() # reads metadata
     
-    img_geom = eeImg.geometry()
+    # -- buffer img geometry (to be a bit smaller)
+    export_geom = eeImg.geometry().buffer(-5e3,1e3)
     
     # buffer coastline
     if clip_coast:
@@ -92,14 +96,15 @@ for i in range(0,len(fCol_relorbs_list)):
                                         bucket=my_bucket,
                                         file_name=file_name,
                                         vismin=vismin,vismax=vismax,scale=scale,CRS=CRS,
-                                        export_geometry=img_geom,
-                                        start_task=True)
+                                        export_geometry=export_geom,
+                                        start_task=start_export)
     
     # store img tasks in list to check status later
     im_task_list.append(im_task)
     
 # Check status of exports
-relorbs.status_task_list(im_task_list)    
+if start_export:
+    relorbs.status_task_list(im_task_list)    
     
 print('Done')
 
