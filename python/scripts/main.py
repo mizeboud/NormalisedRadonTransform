@@ -133,7 +133,7 @@ def main(configFile,imageFile):
                                  name="output", 
                                  attrs=img.attrs, indexes=img.indexes) 
 
-        da_result.attrs['long_name'] = 'Output NeRD'
+        da_result.attrs['long_name'] = 'Output_NeRD'
         da_result.attrs['descriptions'] = '[theta_1,signal_1, theta_2,signal_2, theta_3,signal_3, theta_4,signal_4]'
 
 
@@ -194,12 +194,12 @@ def main(configFile,imageFile):
 
         fname_dmg = fname_out + '_dmg'
 
-        # export a single band to geotiff
-        alpha_c.rio.to_raster( os.path.join(path2save, fname_alpha_c + '.tif'))
-        crevSig.rio.to_raster( os.path.join(path2save, fname_crevSig + '.tif'))
+        # export a single band to Cloud Optimzed geotiff
+        alpha_c.rio.to_raster( os.path.join(path2save, fname_alpha_c + '.tif'),driver="COG")
+        crevSig.rio.to_raster( os.path.join(path2save, fname_crevSig + '.tif'),driver="COG")
 
         if threshold is not None:
-            dmg.where(dmg>0).rio.to_raster( os.path.join(path2save, fname_dmg + '.tif'))
+            dmg.where(dmg>0).rio.to_raster( os.path.join(path2save, fname_dmg + '.tif'),driver="COG")
 
 
         print(' ----- geotiffs saved to {}------\n '.format(path2save))
@@ -208,6 +208,8 @@ def main(configFile,imageFile):
     
 
 if __name__ == '__main__':
+    #  Run script as "python main.py /path/to/config_file.ini /path/to/image.tif"
+        
     # retrieve config and image file name from command line
     config = sys.argv[1] if len(sys.argv) > 1 else None
     imageFile = sys.argv[2] if len(sys.argv) > 2 else None
