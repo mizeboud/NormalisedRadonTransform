@@ -169,10 +169,13 @@ def main(configFile,imageFile):
             threshold_dict = json.load(fp)
 
         try: # check if runs with error
-            threshold = threshold_dict[source]['window_size(m)_threshold'][str(window_range)]
+            # threshold = threshold_dict[source]['window_size(m)_threshold'][str(window_range)]
+            threshold = threshold_dict[source]['img_res'][img_res][str(wsize)+'px'] 
         except KeyError: # handle error
-            print('Warning: Threshold could not be loaded: window_range {}m not in dict for source {} \n' 
-                  '--> threshold set to None, dmg not calculated'.format(window_range,source))
+            # print('Warning: Threshold could not be loaded: window_range {}m not in dict for source {} \n' 
+            #       '--> threshold set to None, dmg not calculated'.format(window_range,source))
+            print('Warning: Threshold could not be loaded: img_res[{}] / n_pix[''{}px''] combi not in dict for source {} \n' 
+                  '--> threshold set to None, dmg not calculated'.format(img_res,wsize,source))
             threshold = None # set threshold to None
         except:
             print('Warning: Threshold could not be loaded for some reason. Set to None')
