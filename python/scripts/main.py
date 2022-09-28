@@ -105,7 +105,7 @@ def main(configFile,imageFile):
 
         # Map function over each split data-part, and stack the parts back together
         with Pool(cores) as pool: # create the multiprocessing pool 
-            print('starting pool.map on df_split')
+            print('started pool.map on df_split')
             pool_out = pool.map( nerd.process_img_windows, windows_split) # list of arrays with shape (n_samples_split,8)
             df_out = np.concatenate( pool_out ) # array with (samples,8)
 
@@ -170,7 +170,7 @@ def main(configFile,imageFile):
 
         try: # check if runs with error
             # threshold = threshold_dict[source]['window_size(m)_threshold'][str(window_range)]
-            threshold = threshold_dict[source]['img_res'][img_res][str(wsize)+'px'] 
+            threshold = threshold_dict[source]['img_res'][str(img_res)][str(wsize)+'px'] 
         except KeyError: # handle error
             # print('Warning: Threshold could not be loaded: window_range {}m not in dict for source {} \n' 
             #       '--> threshold set to None, dmg not calculated'.format(window_range,source))
@@ -211,7 +211,7 @@ def main(configFile,imageFile):
     
 
 if __name__ == '__main__':
-    #  Run script as "python main.py /path/to/config_file.ini /path/to/image.tif"
+    #  Run script as "python path/to/main.py /path/to/config_file.ini /path/to/image.tif"
         
     # retrieve config and image file name from command line
     config = sys.argv[1] if len(sys.argv) > 1 else None
