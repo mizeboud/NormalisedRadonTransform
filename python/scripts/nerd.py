@@ -244,7 +244,7 @@ def read_img_to_grayscale(imPath, imName,dbmin=-15, dbmax=5):
         if img_xyz.min().values < 0 or img_xyz.max().values>255:
             raise Exception("img min max of [{:.1f},{:.1f}] but expected [0 255]".format(img_xyz.min().values, img_xyz.max().values)) 
             
-        img_gray = xr.DataArray(data= rgb2gray(img_rgb), 
+        img_gray = xr.DataArray(data= rgb2gray(img_rgb),  # rgb to grayscale 
                                 coords=(img["y"], img["x"] ), 
                                 dims=("y","x"), name="gray_image", 
                                 attrs=img.attrs, indexes=img.indexes)#, fastpath=False)
@@ -260,9 +260,10 @@ def read_img_to_grayscale(imPath, imName,dbmin=-15, dbmax=5):
             else:
                 print('--> clip and normalise img using min,max: [{},{}]'.format(dbmin, dbmax) )
                 img_clipped = img_xyz.isel(band=0).values
-                img_clipped[img_clipped < dbmin] = dbmin
+                img_clipped[img_clipped < dbmin] = dbmin # first clip values larger than allowed min/max
                 img_clipped[img_clipped > dbmax] = dbmax
-                img_norm = (img_clipped - dbmin) / (dbmax - dbmin)
+                
+                img_norm = (img_clipped - dbmin) / (dbmax - dbmin) # normalise
 
                 img_gray = xr.DataArray(data= img_norm, 
                                 coords=(img["y"], img["x"] ), 
