@@ -142,10 +142,11 @@ def main(configFile,imageFile):
         print('..Reshaped output {} back to (x,y,out): {}'.format(df_out.shape,da_result.shape))
         # da_result.attrs
 
-        da_result.attrs['window_range(m)'] = window_range
+        da_result.attrs['img_res'] = img_res
         da_result.attrs['window_size(px)'] = wsize
+        da_result.attrs['window_range(m)'] = window_range
         da_result.attrs['crs']='EPSG:3031'
-        da_result.attrs
+
 
         ''' -------
         Save to netCDF
@@ -165,28 +166,7 @@ def main(configFile,imageFile):
         crevSig = da_result.isel(out=1)
 
         # convert crevSig to dmg
-        with open(os.path.join(path2threshold,threshold_fname), 'r') as fp:
-            threshold_dict = json.load(fp)
-
-        try: # check if runs with error
-            # threshold = threshold_dict[source]['window_size(m)_threshold'][str(window_range)]
-            threshold = threshold_dict[source]['img_res'][str(img_res)][str(wsize)+'px'] 
-        except KeyError: # handle error
-            # print('Warning: Threshold could not be loaded: window_range {}m not in dict for source {} \n' 
-            #       '--> threshold set to None, dmg not calculated'.format(window_range,source))
-            print('Warning: Threshold could not be loaded: img_res[{}] / n_pix[''{}px''] combi not in dict for source {} \n' 
-                  '--> threshold set to None, dmg not calculated'.format(img_res,wsize,source))
-            threshold = None # set threshold to None
-        except:
-            print('Warning: Threshold could not be loaded for some reason. Set to None')
-            threshold = None
-        else:
-            print('.. Loaded  threshold {} for window_range {}m for source {}. Calculate and save dmg'.format(threshold,window_range,source))
-
-        if threshold is not None: 
-            dmg = crevSig - threshold
-            # set dmg<0 to 0
-            dmg = dmg.where(dmg>0,0) # xr.where(cond,other) replaces everywhere where condition is FALSEe with 'other' (so in this case where dmg<0)
+        dmg, threshold = nerd.crevsig_to_dmg(crevSig, os.path.join(path2threshold,threshold_fname), source, img_res,wsize)
 
         ''' -------
         Save to geotiffs
