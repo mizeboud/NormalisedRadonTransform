@@ -3,6 +3,8 @@
 import ee
 import time
 
+
+# ee.Authenticate()
 ee.Initialize()
 
 
@@ -40,7 +42,7 @@ def get_coastline_buffer(size=20e3,err=1e3):
     coastline_buffer = coastline.map(buffer_feature) # returns ee.featureCollection
     return coastline_buffer
 
-def get_S1_relorb_ids_list(t_strt, t_end, bnds='HH', mode='EW', filter_tileNums=None ):
+def get_S1_relorb_ids_list(t_strt, t_end, bnds='HH', mode='EW', filter_tileNums=None, filterGeom=None ):
 
     # image collction on all ice shelvess
     imCol = (ee.ImageCollection('COPERNICUS/S1_GRD')
@@ -55,6 +57,10 @@ def get_S1_relorb_ids_list(t_strt, t_end, bnds='HH', mode='EW', filter_tileNums=
     if filter_tileNums is not None:
         gridTiles_filter = ee.FeatureCollection(ee.List(filter_tileNums).map(select_tile_number)) # list of tiles
         imCol = imCol.filterBounds(gridTiles_filter)
+        
+    # geometry filter to subset data
+    if filterGeom is not None:
+        imCol = imCol.filterBounds(ee.Geometry.Polygon(filterGeom))    
 
     # all_relorbs =  imCol.aggregate_array('relativeOrbitNumber_start').distinct()
 
