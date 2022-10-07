@@ -3,7 +3,7 @@
 matlab/.DS_store
 matlab/functions/.DS_store
 matlab/functions/ini2struct.m
-matlab/scripts/calculate_RT_base_values.m
+matlab/scripts/calculate_RT_base_value.m
 
 python/scripts/.ipynb_checkpoints/
 python/scripts/__pycache__/
