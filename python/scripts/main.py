@@ -105,7 +105,7 @@ def main(configFile,imageFile):
 
         # Map function over each split data-part, and stack the parts back together
         with Pool(cores) as pool: # create the multiprocessing pool 
-            print('starting pool.map on df_split')
+            print('started pool.map on df_split')
             pool_out = pool.map( nerd.process_img_windows, windows_split) # list of arrays with shape (n_samples_split,8)
             df_out = np.concatenate( pool_out ) # array with (samples,8)
 
@@ -133,7 +133,7 @@ def main(configFile,imageFile):
                                  name="output", 
                                  attrs=img.attrs, indexes=img.indexes) 
 
-        da_result.attrs['long_name'] = 'Output NeRD'
+        da_result.attrs['long_name'] = 'Output_NeRD'
         da_result.attrs['descriptions'] = '[theta_1,signal_1, theta_2,signal_2, theta_3,signal_3, theta_4,signal_4]'
 
 
@@ -142,10 +142,11 @@ def main(configFile,imageFile):
         print('..Reshaped output {} back to (x,y,out): {}'.format(df_out.shape,da_result.shape))
         # da_result.attrs
 
-        da_result.attrs['window_range(m)'] = window_range
+        da_result.attrs['img_res'] = img_res
         da_result.attrs['window_size(px)'] = wsize
+        da_result.attrs['window_range(m)'] = window_range
         da_result.attrs['crs']='EPSG:3031'
-        da_result.attrs
+
 
         ''' -------
         Save to netCDF
@@ -165,25 +166,7 @@ def main(configFile,imageFile):
         crevSig = da_result.isel(out=1)
 
         # convert crevSig to dmg
-        with open(os.path.join(path2threshold,threshold_fname), 'r') as fp:
-            threshold_dict = json.load(fp)
-
-        try: # check if runs with error
-            threshold = threshold_dict[source]['window_size(m)_threshold'][str(window_range)]
-        except KeyError: # handle error
-            print('Warning: Threshold could not be loaded: window_range {}m not in dict for source {} \n' 
-                  '--> threshold set to None, dmg not calculated'.format(window_range,source))
-            threshold = None # set threshold to None
-        except:
-            print('Warning: Threshold could not be loaded for some reason. Set to None')
-            threshold = None
-        else:
-            print('.. Loaded  threshold {} for window_range {}m for source {}. Calculate and save dmg'.format(threshold,window_range,source))
-
-        if threshold is not None: 
-            dmg = crevSig - threshold
-            # set dmg<0 to 0
-            dmg = dmg.where(dmg>0,0) # xr.where(cond,other) replaces everywhere where condition is FALSEe with 'other' (so in this case where dmg<0)
+        dmg, threshold = nerd.crevsig_to_dmg(crevSig, os.path.join(path2threshold,threshold_fname), source, img_res,wsize)
 
         ''' -------
         Save to geotiffs
@@ -194,12 +177,12 @@ def main(configFile,imageFile):
 
         fname_dmg = fname_out + '_dmg'
 
-        # export a single band to geotiff
-        alpha_c.rio.to_raster( os.path.join(path2save, fname_alpha_c + '.tif'))
-        crevSig.rio.to_raster( os.path.join(path2save, fname_crevSig + '.tif'))
+        # export a single band to Cloud Optimzed geotiff
+        alpha_c.rio.to_raster( os.path.join(path2save, fname_alpha_c + '.tif'),driver="COG")
+        crevSig.rio.to_raster( os.path.join(path2save, fname_crevSig + '.tif'),driver="COG")
 
         if threshold is not None:
-            dmg.where(dmg>0).rio.to_raster( os.path.join(path2save, fname_dmg + '.tif'))
+            dmg.where(dmg>0).rio.to_raster( os.path.join(path2save, fname_dmg + '.tif'),driver="COG")
 
 
         print(' ----- geotiffs saved to {}------\n '.format(path2save))
@@ -208,6 +191,8 @@ def main(configFile,imageFile):
     
 
 if __name__ == '__main__':
+    #  Run script as "python path/to/main.py /path/to/config_file.ini /path/to/image.tif"
+        
     # retrieve config and image file name from command line
     config = sys.argv[1] if len(sys.argv) > 1 else None
     imageFile = sys.argv[2] if len(sys.argv) > 2 else None

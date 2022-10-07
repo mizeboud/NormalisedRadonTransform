@@ -1,43 +1,62 @@
 {
     "L7": {
-        "long_name": "LandSat 7",
-        "window_size(m)_threshold": {
-            "150": 0.027,
-            "300": 0.032,
-            "750": 0.037,
-            "990": 0.035
-        }
+        "img_res": {
+            "30": {
+                "10px": 0.032,
+                "25px": 0.037,
+                "33px": 0.035,
+                "5px": 0.027
+            }
+        },
+        "long_name": "LandSat 7"
     },
     "L8": {
-        "long_name": "LandSat 8",
-        "window_size(m)_threshold": {
-            "150": 0.048,
-            "300": 0.051,
-            "750": 0.065
-        }
+        "img_res": {
+            "30": {
+                "10px": 0.051,
+                "25px": 0.065,
+                "5px": 0.048
+            }
+        },
+        "long_name": "LandSat 8"
     },
     "RADARSAT": {
-        "long_name": "RAMP Radarsat",
-        "window_size(m)_threshold": {
-            "1000": 0.033
-        }
+        "img_res": {
+            "100": {
+                "10px": 0.008
+            }
+        },
+        "long_name": "RAMP Radarsat"
     },
     "S1": {
-        "long_name": "Sentinel 1",
-        "window_size(m)_threshold": {
-            "1000": 0.034,
-            "150": 0.057,
-            "300": 0.05,
-            "750": 0.044
-        }
+        "img_res": {
+            "30": {
+                "10px": 0.05,
+                "25px": 0.044,
+                "33px": 0.034,
+                "5px": 0.057
+            },
+            "40": {
+                "10px": 0.037,
+                "25px": 0.03
+            },
+            "100": {
+                "10px": 0.027
+            }
+        },
+        "long_name": "Sentinel 1 (EW)"
     },
     "S2": {
-        "long_name": "Sentinel 2",
-        "window_size(m)_threshold": {
-            "150": 0.046,
-            "300": 0.04,
-            "750": 0.039,
-            "900": 0.04
-        }
+        "img_res": {
+            "30": {
+                "10px": 0.04,
+                "25px": 0.039,
+                "5px": 0.046
+            },
+            "90": {
+                "10px": 0.04
+            }
+        },
+        "long_name": "Sentinel 2"
     }
 }

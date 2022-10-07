@@ -13,10 +13,10 @@ fprintf(['For application please cite:\n Izeboud et al. 2022.\n', ...
 clear all
 close all
 
-
+addpath('../functions')
 %% Read imgs and accompanying velocity-imgs (if supplied)
 
-imPath = './example/data/';
+imPath = '../../data/';
 imName = 'example_S2_median_2020-12-1_2021-3-1.tif';
 imName_vx = 'example_G0240_vx.tif';
 imName_vy = 'example_G0240_vy.tif';
@@ -33,18 +33,16 @@ path2save = [outPath 'geotiffs/'];
 % -- Radon-Transform: set details
 imRes = 30; % export resolution of input image 
 Npix = 10;  % choose number of pixels to process NERD on
-blockSiz = Npix*imRes;
+blockSiz = Npix*imRes; % output resolution
 I_bounds = [0 255]; % min max values of image, needed for converting to grayscale
-levels = 1;
 
 % -- save output?
 save_mat = true;
 
 % -- define which vars to export as geotiff
 
-save_crevSig = true;
-save_alpha_c = true;
-save_D = false;
+save_crevSig = false;
+save_alpha_c = false;
 save_dmg = false;
 save_Dalpha = false;
 save_Dtheta = false;
@@ -66,7 +64,7 @@ if ~exist([outPath outputfile])
     info = geotiffinfo([imPath imName]);
     key = info.GeoTIFFTags.GeoKeyDirectoryTag;
 
-    %% Create NaN-mask; convert to graayscale 
+    %% Create NaN-mask; convert to grayscale 
 
     INAN = mask_img_ocean_from_values(I,I_bounds); 
     I = INAN;
@@ -79,7 +77,7 @@ if ~exist([outPath outputfile])
 
     warning off
     % -- process image blockwise. Apply function 'fun' to each block.
-    fun = @(block_struct) radonIce_norm(block_struct.data,levels);%,prefilter
+    fun = @(block_struct) radonIce_norm(block_struct.data,1);%,prefilter
     Theta = blockproc(I, [Npix Npix], fun, 'UseParallel', true,...
                 'PadPartialBlocks',true,'PadMethod','replicate'); 
     Theta = relaxLabel_multiLevel_output(Theta); % - get the most smooth transition between levels
@@ -92,19 +90,12 @@ if ~exist([outPath outputfile])
     alpha_c  = primeDir - 90;
 
     % -- crev-strength 
-    crevSig1 = Score1;
+    crevSig1 = Theta(:,:,2);
     
-     %% remove img border with timestamp mask
-    timestamp_file = [ strrep(imName,'__','_') '_timestamp.tif'];
-    if exist([imPath timestamp_file]) 
-        crevSig1 = mask_img_border_timestamp( crevSig1 , timestamp_file);
-        alpha_c  = mask_img_border_timestamp( alpha_c , timestamp_file);
-    end
-    
-    
+
     %% Crevasse angle relative to local velocity field / principal strain
     [delta_alpha, R_resz] = calculate_delta_alpha(alpha_c, Ivx , Ivy, Rvx);
-    [delta_theta, ~       ] = calculate_delta_theta(alpha_c, Ivx , Ivy, Rvy);
+    [delta_theta, ~     ] = calculate_delta_theta(alpha_c, Ivx , Ivy, Rvy);
     
 
     %% Calculate damage
@@ -126,13 +117,15 @@ if ~exist([outPath outputfile])
     %% Save result as .mat structure
 
     output = struct([]);
-    output(1).crevSig1 = crevSig1;
+    output(1).processedImage = imName;
+    output(1).imgRes = imRes;
+    output(1).nPixels = Npix;
+    output(1).crevSig = crevSig1;
     output(1).alpha_c = alpha_c;
+    output(1).dmg = dmg;
     output(1).delta_alpha = delta_alpha;
     output(1).delta_theta = delta_theta;
     output(1).R_resz = R_resz;
-    output(1).blockSize = blockSiz;
-    output(1).processedImage = imName;
 
     fprintf([' ------------- \n'])
     fprintf(['Done with img ' imName  '; \n'])
@@ -146,39 +139,33 @@ if ~exist([outPath outputfile])
     %% Saving as GeoTiff
 
     R_resz.RasterSize = size(crevSig1);
-
+    imName = imName(1:end-4); % remove .tif extention
     % -- save crevasse signal
     if save_crevSig
-        filename = [imName '_' num2str(blockSiz)  'm_crevSig1.tif'];
+        filename = [imName '_' num2str(imRes)  'm_' num2str(Npix) 'px_crevSig.tif'];
         geotiffwrite([path2save filename],crevSig1,R_resz,'CoordRefSysCode','EPSG:3031','GeoKeyDirectoryTag',key)
     end
 
     % -- save crevasse angle
     if save_alpha_c
-        filename = [imName '_' num2str(blockSiz)  'm_alpha_c.tif'];
+        filename = [imName '_' num2str(imRes)  'm_' num2str(Npix) 'px_alpha_c.tif'];
         geotiffwrite([path2save filename],alpha_c,R_resz,'CoordRefSysCode','EPSG:3031','GeoKeyDirectoryTag',key)
     end
-    
-    % -- save damage map: binary
-    if save_D
-        filename = [imName '_' num2str(blockSiz)  'm_D.tif'];
-        geotiffwrite([path2save filename],D,R_resz,'CoordRefSysCode','EPSG:3031','GeoKeyDirectoryTag',key)
-    end
 
-    % -- save damage map: continuous
+    % -- save damage map
     if save_dmg
-        filename = [imName '_' num2str(blockSiz)  'm_dmg.tif'];
+        filename = [imName '_' num2str(imRes)  'm_' num2str(Npix) 'px_dmg.tif'];
         geotiffwrite([path2save filename],dmg,R_resz,'CoordRefSysCode','EPSG:3031','GeoKeyDirectoryTag',key)
     end
     
     % -- save delta_alpha
     if save_Dalpha
-        filename = [imName '_' num2str(blockSiz)  'm_delta_alpha.tif'];
+        filename = [imName '_' num2str(imRes)  'm_' num2str(Npix) 'px_delta_alpha.tif'];
         geotiffwrite([path2save filename],delta_alpha,R_resz,'CoordRefSysCode','EPSG:3031','GeoKeyDirectoryTag',key)
     end
     % -- save delta_theta
     if save_Dtheta
-        filename = [imName '_' num2str(blockSiz)  'm_delta_theta.tif'];
+        filename = [imName '_' num2str(imRes)  'm_' num2str(Npix) 'px_delta_theta.tif'];
         geotiffwrite([path2save filename],delta_theta,R_resz,'CoordRefSysCode','EPSG:3031','GeoKeyDirectoryTag',key)
     end
 %         

@@ -12,6 +12,7 @@ import rioxarray as rioxr
 import xarray as xr
 
 import skimage as sk
+import json
 
 
 def radoNorm(I,theta=np.arange(0, 180,1)):
@@ -166,7 +167,7 @@ def radonIce(window,im_filter=False):#, levels):
 
 
 # def myloopfunc(rolling_da):
-def process_img_windows(rolling_da, nan_value=-999):
+def process_img_windows(rolling_da, nodata_val=-999):
     '''Function to loop image-windows, suitable for multiprocessing
     Input windows is a xarray DataArray, rolling window construct.
     Structure of rolling_da is either shape (x, y, x_win, y_win) or (x_win, y_win, sample) where (x) and (y) are stacked '''
@@ -201,8 +202,10 @@ def process_img_windows(rolling_da, nan_value=-999):
             # window = rolling_da[ :,:,n ]
             window = rolling_da.isel(sample=n)
 
-            # check if window contains NaN values (then skip)
-            if (window == nan_value).any():
+            # check if window contains NaN values (then skip) (can be a set nodata-value, or np.nan)
+            if (window == nodata_val).any():
+                result[n,:] = np.nan*np.ones((1,8))
+            elif window.isnull().any():
                 result[n,:] = np.nan*np.ones((1,8))
             else:
                 # apply function
@@ -220,7 +223,8 @@ def process_img_windows(rolling_da, nan_value=-999):
 def mask_nan_containing_windows(xarray_to_mask, windows_1D, min_count=None):
     # windows_1D should have dims (x_win,y_win,sample)
     windows_1D_nan_mask = windows_1D.where(windows_1D != -999)  # replace all values equal to -999 with np.nan
-    
+    wsize=windows_1D.shape[0]
+
     if min_count is None:
         min_count = windows_1D_nan_mask.attrs['window_size']
 
@@ -232,7 +236,38 @@ def mask_nan_containing_windows(xarray_to_mask, windows_1D, min_count=None):
     return xarray_masked
 
 
+def crevsig_to_dmg(crevSig, threshold_file, source,  img_res, wsize):
+    
+    # convert crevSig to dmg
+    with open(threshold_file, 'r') as fp:
+        threshold_dict = json.load(fp)
 
+    try: # check if runs with error
+        # threshold = threshold_dict[source]['window_size(m)_threshold'][str(window_range)]
+        threshold = threshold_dict[source]['img_res'][str(img_res)][str(wsize)+'px'] 
+    except KeyError: # handle error
+        print('Threshold could not be loaded: img_res[{}] / n_pix[''{}px''] combi not in dict for source {} \n' 
+              '--> threshold & dmg set to None'.format(img_res,wsize,source))
+        threshold = None # set threshold to None
+        dmg = None
+    except:
+        print('Warning: Threshold could not be loaded for some reason. Set to None')
+        threshold = None
+        dmg = None
+    else: # when 'try' succeeds, do the following:
+        print('.. Loaded  threshold {} --> calculate dmg'.format(threshold))
+        dmg = crevSig - threshold
+        # set dmg<0 to 0
+        dmg = dmg.where(dmg>0,0) # xr.where(cond,other) replaces everywhere where condition is FALSEe with 'other' (so in this case where dmg<0)
+        
+    # if threshold is not None: 
+    #     dmg = crevSig - threshold
+    #     # set dmg<0 to 0
+    #     dmg = dmg.where(dmg>0,0) # xr.where(cond,other) replaces everywhere where condition is FALSEe with 'other' (so in this case where dmg<0)
+    # else:
+    #     dmg = None
+        
+    return dmg, threshold
 
 def read_img_to_grayscale(imPath, imName,dbmin=-15, dbmax=5):
      # open image and convert RGB to Grayscale
@@ -244,7 +279,7 @@ def read_img_to_grayscale(imPath, imName,dbmin=-15, dbmax=5):
         if img_xyz.min().values < 0 or img_xyz.max().values>255:
             raise Exception("img min max of [{:.1f},{:.1f}] but expected [0 255]".format(img_xyz.min().values, img_xyz.max().values)) 
             
-        img_gray = xr.DataArray(data= rgb2gray(img_rgb), 
+        img_gray = xr.DataArray(data= rgb2gray(img_xyz),  # rgb to grayscale 
                                 coords=(img["y"], img["x"] ), 
                                 dims=("y","x"), name="gray_image", 
                                 attrs=img.attrs, indexes=img.indexes)#, fastpath=False)
@@ -260,9 +295,10 @@ def read_img_to_grayscale(imPath, imName,dbmin=-15, dbmax=5):
             else:
                 print('--> clip and normalise img using min,max: [{},{}]'.format(dbmin, dbmax) )
                 img_clipped = img_xyz.isel(band=0).values
-                img_clipped[img_clipped < dbmin] = dbmin
+                img_clipped[img_clipped < dbmin] = dbmin # first clip values larger than allowed min/max
                 img_clipped[img_clipped > dbmax] = dbmax
-                img_norm = (img_clipped - dbmin) / (dbmax - dbmin)
+                
+                img_norm = (img_clipped - dbmin) / (dbmax - dbmin) # normalise
 
                 img_gray = xr.DataArray(data= img_norm, 
                                 coords=(img["y"], img["x"] ), 
@@ -276,7 +312,7 @@ def read_img_to_grayscale(imPath, imName,dbmin=-15, dbmax=5):
     
     # test: fillNA
     # nan_mask = img_gray.isnull()
-    img_gray = img_gray.fillna(-999)
+    img_gray = img_gray.fillna(-999) 
     # nan_mask_2 = img_gray.where(img_gray == -999)  # replace all values equal to -9999 with np.nan
     
     return img_gray
