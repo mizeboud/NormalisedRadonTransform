@@ -24,13 +24,16 @@ ee.Initialize()
 # Npix = 10 
 
 # -- S1 relorbs
-gcloud_dir = 'gs://ee-export_s1_relorbs/r100m/damage_detection/geotiffs/'
-pattern = '*crevSig*'
-asset_ID = 'users/izeboudmaaike/damage_detection/S1_relorbs_100m_10px_crevSig'
-descript = 'S1_r100m_toAsset'
+# gcloud_dir = 'gs://ee-export_s1_relorbs/r100m/damage_detection/geotiffs/'
+# asset_ID = 'users/izeboudmaaike/damage_detection/S1_relorbs_100m_10px_crevSig'
+# descript = 'S1_r100m_toAsset'
+gcloud_dir = 'gs://ee-export_s1_relorbs/r40m/damage_detection/geotiffs/'
+asset_ID = 'users/izeboudmaaike/damage_detection/S1_relorbs_40m_25px_crevSig'
+descript = 'S1_r40m_toAsset'
+pattern = '*25px_crevSig*'
 bandname = 'crevSig'
-imRes = 100
-Npix = 10 
+imRes = 40
+Npix = 25 
 
 # -- general
 export_scale = imRes*Npix
