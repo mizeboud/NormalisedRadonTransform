@@ -3,7 +3,9 @@ import relorbs
 import configparser
 import os
 import time # not needed here
+import json
 
+# ee.Authenticate()
 ee.Initialize()
 
 ''' ---------------------------------------------------------------------------
@@ -29,7 +31,7 @@ CRS = config['DATA']['CRS']
 scale = int(config['DATA']['imRes']) # test scale
 clip_coast = True if config['DATA']['clip_coast'] == 'True' else False
 start_export = True if config['DATA']['start_export'] == 'True' else False
-
+filter_geometry = None if config['DATA']['AOI'] == 'None' else json.loads(config.get("DATA","AOI"))
 try:
     tileNums = config['DATA']['tileNums']
     tileNums = [int(t) for t in tileNums.split()]
@@ -42,27 +44,29 @@ except:
         Select all images
 -------------------------------------------------------------- '''
 
-fCol_relorbs_list = relorbs.get_S1_relorb_ids_list(t_strt, t_end, bnds=bnds, mode=mode, filter_tileNums=tileNums ) # filter_tileNums=None
+fCol_relorbs_list = relorbs.get_S1_relorb_ids_list(t_strt, t_end, bnds=bnds, mode=mode, filter_tileNums=tileNums ,filterGeom=filter_geometry) # filter_tileNums=None
 
 # if ROI defined
 if tileNums is not None:
     print('Selected {} relorbs for period {} to {}, and tileNums {}'.format(len(fCol_relorbs_list),t_strt,t_end,tileNums))
     relorb_list_fname = 'List_relorbs_S1_'+mode+'_'+bnds+'_'+t_strt+'_'+t_end+'_tileNums'+str(tileNums)+'.txt'
     # relorb_list_fname = 'List_relorbs_S1_'+mode+'_'+bnds+'_'+t_strt+'_'+t_end+'_tileNums-Ross.txt'
+elif filter_geometry is not None:
+    print('Selected {} relorbs for period {} to {}, in the specified AOI'.format(len(fCol_relorbs_list),t_strt,t_end))
 else:
-    print('Selected {} relorbs for period {} to {}'.format(len(fCol_relorbs_list),t_strt,t_end))
-    relorb_list_fname = 'List_relorbs_S1_'+mode+'_'+bnds+'_'+t_strt+'_'+t_end+'.txt'
+    print('Selected {} relorbs for period {} to {}, for all ice shelves'.format(len(fCol_relorbs_list),t_strt,t_end))
+    relorb_list_fname = 'List_relorbs_S1_'+mode+'_'+bnds+'_'+t_strt+'_'+t_end+ '_'+ str(scale) + 'm.txt'
 
 # -- save list of relorb img names 
 with open(os.path.join(path2files,relorb_list_fname), 'w') as f:
     for img_id in fCol_relorbs_list:
-        f.write(str(img_id) + '\n')
+        # f.write(str(img_id) + '_' + str(scale) +'m\n')
+        f.write(str(img_id) +'\n')
     print('.. Written relorbs to {}'.format(relorb_list_fname))
 
     
 ''' ---------------------------------------------------------------------------
         Export images to Cloud Bucket
-        TO DO: add something that checks if file already exists!!
 -------------------------------------------------------------- '''
 
 
@@ -79,8 +83,9 @@ for i in range(0,len(fCol_relorbs_list)):
     eeImg = ee.Image('COPERNICUS/S1_GRD/' + imName) 
     # eeImg_meta = eeImg.getInfo() # reads metadata
     
-    # -- buffer img geometry (to be a bit smaller)
+    # -- buffer img geometry (to be a bit smaller: erode edges of S1)
     export_geom = eeImg.geometry().buffer(-5e3,1e3)
+        
     
     # buffer coastline
     if clip_coast:
@@ -103,11 +108,10 @@ for i in range(0,len(fCol_relorbs_list)):
     im_task_list.append(im_task)
     
 # Check status of exports
-if start_export:
-    relorbs.status_task_list(im_task_list)    
+# if start_export:
+#     relorbs.status_task_list(im_task_list)    
     
 print('Done')
-
 
 
 ''' ---------------------------------------------------------------------------
