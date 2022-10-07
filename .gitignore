@@ -2,6 +2,8 @@
 .DS_store
 matlab/.DS_store
 matlab/functions/.DS_store
+matlab/functions/ini2struct.m
+matlab/scripts/calculate_RT_base_values.m
 
 python/scripts/.ipynb_checkpoints/
 python/scripts/__pycache__/
@@ -21,3 +23,4 @@ config_files/log_configs/
 files/*.txt
 files/*-v0*
 files/*.geojson
+files/batlow.mat
