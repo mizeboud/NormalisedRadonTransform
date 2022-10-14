@@ -3,9 +3,9 @@
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --job-name=nerdYY
-#SBATCH --partition inf
-#SBATCH --cpus-per-task=10
-#SBATCH --mem-per-cpu=4G    # Required RAM per cpu (default is 4 Gb)
+#SBATCH --partition inf     # nodes in 'inf' have 72 cpu (allocTres=64)
+#SBATCH --cpus-per-task=15  # check available CPU per node with: scontrol show node
+#SBATCH --mem-per-cpu=4G    # Required RAM per cpu (default is 4 Gb) alternatively: #SBATCH --mem=80G # memory required per node [--MEM and --MEM-PER-CPU are mutually exclusive]
 #SBATCH --time=3-1:30			  # Max runtime (d-h:mm) of task
 #SBATCH --output=nerd_XXXm_YYpx_%A-%a.out	  # %A jobID, %a array task
 #SBATCH --error=nerd_XXXm_YYpx_%A-%a.err
