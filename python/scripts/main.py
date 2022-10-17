@@ -115,7 +115,7 @@ def main(configFile,imageFile):
         pool.clear()    
 
 
-        print('.. done with pool.map after: {:.2f}min'.format((time.time() - start_time)/60) )
+        print('.. done with pool.map after: {:.2f}hour'.format((time.time() - start_time)/(60*60)) )
 
 
         ''' -------
@@ -139,7 +139,7 @@ def main(configFile,imageFile):
 
         # back to 2D
         da_result = da_result.unstack('sample').transpose("y","x","out")
-        print('..Reshaped output {} back to (x,y,out): {}'.format(df_out.shape,da_result.shape))
+        # print('..Reshaped output {} back to (x,y,out): {}'.format(df_out.shape,da_result.shape))
         # da_result.attrs
 
         da_result.attrs['img_res'] = img_res
