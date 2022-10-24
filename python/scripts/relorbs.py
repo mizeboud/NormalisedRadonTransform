@@ -133,7 +133,7 @@ def export_img_to_GCS(eeImg,bucket,file_name,
             image = eeImg,# do not export toByte; then NaN mask will be converted to 0
             # using unitScale does NOT clip minmax data; so final range is somehwat outside than [0,1]
             # --> just export raw dB values and do normlisation step in python
-            description = 'export_'+file_name,
+            description = 'export_'+file_name.split('/')[-1],
             fileNamePrefix = file_name,
             scale= scale,
             bucket= bucket,
