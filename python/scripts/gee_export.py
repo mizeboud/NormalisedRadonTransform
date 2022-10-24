@@ -2,6 +2,7 @@ import ee
 import relorbs
 import configparser
 import os
+import sys
 import time # not needed here
 import json
 
@@ -20,8 +21,11 @@ def main(configFile):
     # config = configparser.ConfigParser(allow_no_value=True)
     # config.read(os.path.join(configPath,configFile))
 
-    config = configparser.ConfigParser(allow_no_value=True)
-    config.read(os.path.join(configFile))
+    if configFile is None:
+        raise NameError('No config file specified. Run script as "python this_script.py /path/to/config_file.ini"')
+    else:
+        config = configparser.ConfigParser(allow_no_value=True)
+        config.read(os.path.join(configFile))
 
     path2files = config['PATHS']['path2relorbList']
     my_bucket = config['PATHS']['gcloud_bucket']        # full path:   e.g. ee-export_s1_relorbs/path/to/dir
