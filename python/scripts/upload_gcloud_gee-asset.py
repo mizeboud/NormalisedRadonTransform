@@ -9,6 +9,7 @@ import configparser
 import os
 import subprocess
 import ee
+import re
 # import rioxarray as rioxr
 # import geopandas as gpd
 
@@ -53,7 +54,6 @@ def main(configFile):
 
     # -- settings following from config
 
-    # pattern = '*'+str(Npix)+'px_'+bandname+'*' # e.g.: '*10px_dmg*'
     pattern = '*'+str(imRes)+'m*'+str(Npix)+'px_'+'*' # e.g.: '*40m*10px*'
     export_scale = imRes*Npix
     include_vars.remove('crevSig')
@@ -62,7 +62,15 @@ def main(configFile):
             Find all files with pattern in gcloud
     -------------------------------------------------------------- '''
 
-    content_clouddir = subprocess.run('gsutil ls ' + gcloud_dir + pattern ,shell=True , check=True, capture_output=True, text=True).stdout.splitlines()
+    # content_clouddir = subprocess.run('gsutil ls ' + gcloud_dir + pattern ,shell=True , check=True, capture_output=True, text=True).stdout.splitlines()
+    try:
+        content_clouddir = subprocess.run('gsutil ls ' + gcloud_dir + pattern ,shell=True , check=True, capture_output=True, text=True).stdout.splitlines()
+    except subprocess.CalledProcessError: 
+        # error raised when Command 'gsutil ls gs://dir/*' returned non-zero exit status 1.
+        pattern_oldfmt = '*_'+str(imRes*Npix)+'m*' # e.g.: '*40m*10px*' # RAMP / OLD FORMAT
+        print('No files found for pattern {}; try old format pattern {}'.format(pattern,pattern_oldfmt))
+        content_clouddir = subprocess.run('gsutil ls ' + gcloud_dir + pattern_oldfmt ,shell=True , check=True, capture_output=True, text=True).stdout.splitlines()
+
     # all imgs
     gcloud_tif_list = [file for file in content_clouddir if file.endswith('.tif')]
     # remove duplicates for multiple vars (image_alphaC; image_dmg; image_crevSig)
@@ -89,7 +97,7 @@ def main(configFile):
         ''' -----------------
         Load data for all variables
         ---------------------'''
-        
+
         # -- load crevSig
         cloudImage = ee.Image.loadGeoTIFF(gcFile).rename('crevSig')
 
@@ -101,7 +109,7 @@ def main(configFile):
 
         # print('bands in img:', cloudImage.bandNames().getInfo())
         
-         ''' -----------------
+        ''' -----------------
         Add metadata to img
         ---------------------'''
 
@@ -119,7 +127,7 @@ def main(configFile):
             img_date_start ='1997-09-09'
             img_date_end = '1997-10-20'
             cloudImage = cloudImage.set({'system:time_start':ee.Date(img_date_start).millis(), 
-                                        'system:time_start':ee.Date(img_date_end).millis(), 
+                                        'system:time_end':ee.Date(img_date_end).millis(), 
                                         'tileNum':tileNum})   
         else:
             raise Exception('Could not included metadata. Neither "relorb" nor "RAMP" are found in img_name ({}).'.format(img_name))
