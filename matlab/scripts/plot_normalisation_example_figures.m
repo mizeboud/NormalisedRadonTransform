@@ -14,7 +14,7 @@ romaO = load('./files/romao.mat').romaO;
 batlow = load('./files/batlow.mat').batlow;
 
 %% PLOT EXAMPLE WINDOW WITH original VS norrmalised RADON TRANSFORM
-path2save = './example/';
+% path2save = './example/';
 
 RT_mark = '*';
 RT_line = ':';
