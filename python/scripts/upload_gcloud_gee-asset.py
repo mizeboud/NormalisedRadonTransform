@@ -62,7 +62,6 @@ def main(configFile):
             Find all files with pattern in gcloud
     -------------------------------------------------------------- '''
 
-    # content_clouddir = subprocess.run('gsutil ls ' + gcloud_dir + pattern ,shell=True , check=True, capture_output=True, text=True).stdout.splitlines()
     try:
         content_clouddir = subprocess.run('gsutil ls ' + gcloud_dir + pattern ,shell=True , check=True, capture_output=True, text=True).stdout.splitlines()
     except subprocess.CalledProcessError: 
@@ -75,12 +74,12 @@ def main(configFile):
     gcloud_tif_list = [file for file in content_clouddir if file.endswith('.tif')]
     # remove duplicates for multiple vars (image_alphaC; image_dmg; image_crevSig)
     gcloud_tif_crevSig = [file for file in gcloud_tif_list if 'crevSig' in file]
-    # gcloud_tif_alphaC = [file for file in gcloud_tif_list if 'alphaC' in file]
-    # gcloud_tif_dmg = [file for file in gcloud_tif_list if 'dmg' in file]
+    gcloud_tif_alphaC = [file for file in gcloud_tif_list if 'alphaC' in file]
+    gcloud_tif_dmg = [file for file in gcloud_tif_list if 'dmg' in file]
 
     n_files = len(gcloud_tif_crevSig)
-    # if len(gcloud_tif_crevSig) != len(gcloud_tif_alphaC) != len(gcloud_tif_dmg):
-    #     raise('Not all variables (crevSig, alphaC, dmg) available for every img')
+    if len(gcloud_tif_crevSig) != len(gcloud_tif_alphaC) != len(gcloud_tif_dmg):
+        raise('Not all variables (crevSig, alphaC, dmg) available for every img')
 
     print('.. Found {} files in gcloud {}'.format(n_files,gcloud_dir) )
     print('.. Uploading to Asset: {}'.format(asset_ID))
