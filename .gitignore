@@ -16,9 +16,8 @@ logs/
 */development/
 
 # files
-config_files/*.sh
-config_files/*.ini
-config_files/*.slurm
+config_files/*
+!config_files/config_NERD_example.ini
 
 data/example_S1_IW_img_2019-12-01.tif
 
