@@ -3,7 +3,7 @@
 % M. Izeboud, 2022
 
 
-imPath = '../../example/data/';
+imPath = '../../data/';
 imName = 'example_S2_median_2020-12-1_2021-3-1.tif';
 resample_method = 'nearest';
 kernel_size = 10;
