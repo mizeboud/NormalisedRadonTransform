@@ -54,10 +54,7 @@ If an image with filename 'image.tif' is used, NeRD output will have the followi
 
 # Example 
 <p float="left">
-    <figure>
     <img src="/data/imgs/example_S2_median_PiG_2019-12-01_2020-03-01.jpg" alt="RGB median composite DJF 2019-2020" width="200" />
-    <figcaption>Caption</figcaption>
-    </figure>
     <img src="/data/imgs/example_S2_median_PiG_2019-12-01_2020-03-01_dmg.jpg" alt="Detected damage" width="200"/>
     <img src="/data/imgs/example_S2_median_PiG_2019-12-01_2020-03-01_angle.jpg" alt="Detected damage orientation" width="200"/>
 </p>
