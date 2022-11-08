@@ -20,7 +20,7 @@ config_files/*
 data/example_S1_IW_img_2019-12-01.tif
 
 files/*
-!files/dmg_threshold_dictionary.json
+!files/dmg_threshold_dictionary.*
 !files/romaO*
 
 matlab/functions/ini2struct.m
