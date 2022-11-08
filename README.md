@@ -52,4 +52,9 @@ If an image with filename 'image.tif' is used, NeRD output will have the followi
     `python ./scripts/main.py ./config_files/config_file.ini ./path/to/image.tif`
 
 
+# Example image
+
+![plot](./data/example_S2_median_2020-12-1_2021-3-1.tif)
+
+
 
