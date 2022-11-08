@@ -11,8 +11,6 @@
 
 
 # directories
-cluster/
-logs/
 */development/
 
 # files
@@ -21,10 +19,9 @@ config_files/*
 
 data/example_S1_IW_img_2019-12-01.tif
 
-files/*.txt
-files/*-v0*
-files/*.geojson
-files/batlow.mat
+files/*
+!files/dmg_threshold_dictionary.json
+!files/romaO*
 
 matlab/functions/ini2struct.m
 matlab/scripts/calculate_RT_base_value.m
