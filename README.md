@@ -58,5 +58,5 @@ If an image with filename 'image.tif' is used, NeRD output will have the followi
 ![plot](./data/imgs/example_S2_median_PiG_2019-11-1_2020-3-1_dmg.jpg)
 ![plot](./data/imgs/example_S2_median_PiG_2019-11-1_2020-3-1_angle.jpg)
 
-
+![Alt text]((./data/imgs/example_S2_median_PiG_2019-11-1_2020-3-1.jpg?raw=true "Title")
 
