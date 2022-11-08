@@ -53,8 +53,9 @@ If an image with filename 'image.tif' is used, NeRD output will have the followi
 
 
 # Example 
+<img src="/data/imgs/example_S2_median_PiG_2019-12-01_2020-03-01.jpg" alt="test" width="200"/>
 
-![Example RGB image from Sentinel-2; Median composite of Dec-Jan-Feb 2019-2020](/data/imgs/example_S2_median_PiG_2019-11-1_2020-3-1.jpg)
+![Example RGB image from Sentinel-2; Median composite of Dec-Jan-Feb 2019-2020](/data/imgs/example_S2_median_PiG_2019-12-01_2020-03-01.jpg)
 ![Example of detected damage on image](/data/imgs/example_S2_median_PiG_2019-12-01_2020-03-01_dmg.jpg)
 ![Example of detected damage orientation on image](/data/imgs/example_S2_median_PiG_2019-12-01_2020-03-01_angle.jpg)
 
