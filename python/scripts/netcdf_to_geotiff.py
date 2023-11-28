@@ -3,6 +3,7 @@ import os
 import nerd
 import xarray as xr
 import json
+import rasterio as rio
 
 xr.set_options(keep_attrs=True)
 
@@ -35,6 +36,21 @@ def check_and_save_geotiffs(path_to_nc_file, path_to_threshold_file , path2tiff=
     fname_alpha_c = fname_out + '_alphaC'
     fname_dmg = fname_out + '_dmg'
 
+    # infer settings   
+    source=netcdf_fname[0:2] # 'S1'
+    tau_type='mean'
+    tau_type='pct0.95' # (note: done for PiG monthly processing)
+    if source in ['S1','S2','L7','L8']:
+        print('hoi')
+    elif netcdf_fname.startswith('relorb'):
+        source='S1'
+    elif netcdf_fname.split('_')[0] == 'RAMP':
+        source = 'RADARSAT'
+        tau_type='pct0.95' 
+        fname_dmg = fname_dmg.replace('dmg','dmg095')
+    else:
+        raise ValueError('Cannot infer data source from filename; found {}'.format(source))
+        
     ''' -------
     Read netcdf
     -----------'''
@@ -47,15 +63,9 @@ def check_and_save_geotiffs(path_to_nc_file, path_to_threshold_file , path2tiff=
         
         da_result = xr.open_dataarray(path_to_nc_file)
 
-        # infer settings 
-        source=netcdf_fname[0:2] # 'S1'
-        if source in ['S1','S2','L7','L8']:
-            print('hoi')
-        elif netcdf_fname.startswith('relorb'):
-            source='S1'
-        else:
-            raise('Error: cannot infer data source from filename')
-        
+        ## update CRS
+        da_result.rio.write_crs(3031, inplace=True)
+
         wsize = da_result.attrs['window_size(px)'] # e.g. 10px 
         wrange= da_result.attrs['window_range(m)'] # e.g. 300m
         try: # check if runs with error
@@ -73,7 +83,11 @@ def check_and_save_geotiffs(path_to_nc_file, path_to_threshold_file , path2tiff=
     if not os.path.exists(os.path.join(path2tiff,fname_crevSig + '.tif')):
         print('..Saving {}'.format(fname_crevSig))
         crevSig = da_result.isel(out=1)
+        crevSig.rio.write_crs(3031, inplace=True)
         crevSig.rio.to_raster( os.path.join(path2tiff, fname_crevSig + '.tif'),driver="COG")
+        # NB: if you get an Attribute Error: 'DataArray' object has no attribute '_data', 
+        #       you likely have an outdated version of rioxarray causing issues with encode_cf (https://gis.stackexchange.com/questions/460439/using-xarray-to-write-netcdf4-to-geotiff-get-attributeerror-dataarray-object)
+
 
     # alpha_c
     if not os.path.exists(os.path.join(path2tiff,fname_alpha_c + '.tif')):
@@ -86,10 +100,11 @@ def check_and_save_geotiffs(path_to_nc_file, path_to_threshold_file , path2tiff=
         print('..Saving {}'.format(fname_dmg))    
         crevSig = da_result.isel(out=1)
         # convert crevSig to dmg
-        dmg, threshold = nerd.crevsig_to_dmg(crevSig, path_to_threshold_file, source, img_res,wsize)
+        dmg, threshold = nerd.crevsig_to_dmg(crevSig, path_to_threshold_file, source, img_res,wsize,tau_type=tau_type)
+        dmg.rio.write_crs(3031, inplace=True) ## some persistent issues with the dataArray losing the CRS, which disrupts 'COG' saving
         if dmg is not None:
+            dmg.rio.write_crs(3031, inplace=True)
             dmg.where(dmg>0).rio.to_raster( os.path.join(path2tiff, fname_dmg + '.tif'),driver="COG")
-
 
 def main(netcdf_dir, path_to_threshold_file, path2tiff=None):
     

@@ -38,6 +38,12 @@ def main(configFile,imageFile):
     
     path2threshold = config['PATHS']['path2files']
     threshold_fname= config['PATHS']['threshold_fname']
+    try:
+        tau_type=config['PATHS']['tau_type'] # 'mean' or 'pct095'
+        if tau_type != 'mean' or tau_type != 'pct095':
+            raise ValueError('Expected threshold type ''mean'' or ''pct095'', got {}'.format(tau_type))
+    except:
+        tau_type = None
 
     img_res = int(config['DATA']['imRes'])
     source = config['DATA']['source']
@@ -166,8 +172,13 @@ def main(configFile,imageFile):
         crevSig = da_result.isel(out=1)
 
         # convert crevSig to dmg
-        dmg, threshold = nerd.crevsig_to_dmg(crevSig, os.path.join(path2threshold,threshold_fname), source, img_res,wsize)
-
+        if tau_type is not None:
+            dmg, threshold = nerd.crevsig_to_dmg(crevSig, os.path.join(path2threshold,threshold_fname), 
+                                                 source, img_res,wsize,tau_type=tau_type)
+        else:
+            dmg, threshold = nerd.crevsig_to_dmg(crevSig, os.path.join(path2threshold,threshold_fname), 
+                                                 source, img_res,wsize)
+        
         ''' -------
         Save to geotiffs
         -----------'''
