@@ -13,7 +13,7 @@ import xarray as xr
 
 import skimage as sk
 import json
-
+import warnings
 
 def radoNorm(I,theta=np.arange(0, 180,1)):
     '''Normalised radon transform applied to image windows
@@ -236,21 +236,25 @@ def mask_nan_containing_windows(xarray_to_mask, windows_1D, min_count=None):
     return xarray_masked
 
 
-def crevsig_to_dmg(crevSig, threshold_file, source,  img_res, wsize):
+def crevsig_to_dmg(crevSig, threshold_file, source,  img_res, wsize, tau_type='mean'):
     
     # convert crevSig to dmg
     with open(threshold_file, 'r') as fp:
-        threshold_dict = json.load(fp)
-
-    try: # check if runs with error
+        threshold_dict = json.load(fp) 
+    if 'mean' in threshold_dict.keys():  
+        # new SAR threshold file version, with upper key level separating thresholds calculated for mean(crevSig) or pct095/pct099 (crevSig) values
+        print('-Selecting thresholds calculated for {}(crevSignal)'.format(tau_type))
+        threshold_dict = threshold_dict[tau_type]
+    try: # check if runs with error (to handle old/new structuring of threshold.json files)
         # threshold = threshold_dict[source]['window_size(m)_threshold'][str(window_range)]
         threshold = threshold_dict[source]['img_res'][str(img_res)][str(wsize)+'px'] 
     except KeyError: # handle error
         print('Threshold could not be loaded: img_res[{}] / n_pix[''{}px''] combi not in dict for source {} \n' 
               '--> threshold & dmg set to None'.format(img_res,wsize,source))
+        print('Main keys: ', threshold_dict.keys())
         threshold = None # set threshold to None
         dmg = None
-    except:
+    except: # other error
         print('Warning: Threshold could not be loaded for some reason. Set to None')
         threshold = None
         dmg = None
@@ -269,20 +273,53 @@ def crevsig_to_dmg(crevSig, threshold_file, source,  img_res, wsize):
         
     return dmg, threshold
 
-def read_img_to_grayscale(imPath, imName,dbmin=-15, dbmax=5):
+
+def clip_and_normalise_dataArray(da, norm_min=0, norm_max=None):
+    ''' .. '''
+    # normlise using norm_min nd norm_max values
+    da = (da - norm_min) / (norm_max - norm_min) # first normalise with specified bounds
+    da = da.clip(min=0,max=1)                    # then clip everything out of bounds
+    return da
+
+def read_img_to_grayscale(imPath, imName,dbmin=None, dbmax=None):
      # open image and convert RGB to Grayscale
         
     img = rioxr.open_rasterio(os.path.join(imPath , imName))
     img_xyz = img.transpose("y","x","band")
 
+    if img_xyz.shape[2] > 3: # more than 3 bands. For now: assume that first three are RGB bands. Should update this.
+        warnings.warn("Img has more than 3 bands (nbands={}), assuming first three are RGB bands and selecting these.".format(img_xyz.shape[2]),UserWarning)
+        # select first three bands
+        img_xyz = img_xyz.isel(band=[0,1,2])
+
     if img_xyz.shape[2] == 3: # RGB band
-        if img_xyz.min().values < 0 or img_xyz.max().values>255:
-            raise Exception("img min max of [{:.1f},{:.1f}] but expected [0 255]".format(img_xyz.min().values, img_xyz.max().values)) 
+        # if img_xyz.min().values < 0 or img_xyz.max().values>255:
+        #     raise Exception("img min max of [{:.1f},{:.1f}] but expected [0 255]".format(img_xyz.min().values, img_xyz.max().values)) 
+        
+        # -- if normalisation values are given, use these
+        if dbmin is not None or dbmax is not None:
+            if dbmin is None: # if only max is given, set min to 0
+                dbmin=0
             
-        img_gray = xr.DataArray(data= rgb2gray(img_xyz),  # rgb to grayscale 
-                                coords=(img["y"], img["x"] ), 
-                                dims=("y","x"), name="gray_image", 
-                                attrs=img.attrs, indexes=img.indexes)#, fastpath=False)
+            print('--> clip and normalise img using min,max: [{},{}]'.format(dbmin, dbmax) )
+            img_xyz = clip_and_normalise_dataArray(img_xyz, norm_min=dbmin, norm_max=dbmax) # has 3 bands with values [0,1] --> need to smash to single band
+
+            img_gray = xr.DataArray(data= rgb2gray(img_xyz),  # 3 bands to singleband -- also works if all values are [0,1]  
+                                    coords=(img["y"], img["x"] ), 
+                                    dims=("y","x"), name="gray_image", 
+                                    attrs=img.attrs, indexes=img.indexes)#, fastpath=False)
+
+        # -- if no normalisation values are given, check if values are 0-255 RGB values
+        elif img_xyz.min().values > 0 and img_xyz.max().values < 255:
+            print("img min max of [{:.1f},{:.1f}]: between [0 255] so assuming RGB values and proceeding with skimage.color.rgb2gray".format(img_xyz.min().values, img_xyz.max().values)) 
+            img_gray = xr.DataArray(data= rgb2gray(img_xyz),  # rgb to grayscale 
+                                    coords=(img["y"], img["x"] ), 
+                                    dims=("y","x"), name="gray_image", 
+                                    attrs=img.attrs, indexes=img.indexes)#, fastpath=False)
+
+        else:
+            raise Exception("img min max of [{:.1f},{:.1f}] but expected either values between [0 255], or a normalisation value [norm_min , norm_max] (set in config file)".format(img_xyz.min().values, img_xyz.max().values))                                  
+                                        
         
     elif img_xyz.shape[2] == 1: # single band
         
@@ -293,21 +330,29 @@ def read_img_to_grayscale(imPath, imName,dbmin=-15, dbmax=5):
                 print(' --> 10 and 90th quantile are between [0,1] --> clip values to [0, 1]')
                 img_gray = img_xyz.isel(band=0).clip(0,1)
             else:
-                print('--> clip and normalise img using min,max: [{},{}]'.format(dbmin, dbmax) )
+                print('..clip and normalise img using min,max: [{},{}]'.format(dbmin, dbmax) )
                 img_clipped = img_xyz.isel(band=0).values
                 img_clipped[img_clipped < dbmin] = dbmin # first clip values larger than allowed min/max
                 img_clipped[img_clipped > dbmax] = dbmax
                 
                 img_norm = (img_clipped - dbmin) / (dbmax - dbmin) # normalise
 
+                # img_gray = xr.DataArray(data= img_norm, 
+                #                 coords=(img["y"], img["x"] ), 
+                #                 dims=("y","x"), name="gray_image", 
+                #                 attrs=img.attrs, indexes=img.indexes)#, fastpath=False)
+
                 img_gray = xr.DataArray(data= img_norm, 
                                 coords=(img["y"], img["x"] ), 
                                 dims=("y","x"), name="gray_image", 
-                                attrs=img.attrs, indexes=img.indexes)#, fastpath=False)
+                                attrs=img.attrs )#, indexes=img.indexes)#, fastpath=False)
 
         else:    
             img_gray = img_xyz.isel(band=0)
     
+    else:
+        raise ValueError('Unexpected image shape {} or {}; should have dimensions (y,x,band), with bands=1 or 3'.format(img_xyz.shape, img.shape))
+
     img_gray.attrs["long_name"] = "grayscale"
     
     # test: fillNA
@@ -315,6 +360,7 @@ def read_img_to_grayscale(imPath, imName,dbmin=-15, dbmax=5):
     img_gray = img_gray.fillna(-999) 
     # nan_mask_2 = img_gray.where(img_gray == -999)  # replace all values equal to -9999 with np.nan
     
+    print('..image succesfully converted to grayscale')
     return img_gray
 
 def cut_img_to_windows(img_gray,wsize):
