@@ -23,7 +23,7 @@
     "RADARSAT": {
         "img_res": {
             "100": {
-                "10px": 0.008
+                "10px": 0.009
             }
         },
         "long_name": "RAMP Radarsat"
