@@ -1,0 +1,68 @@
+{
+  "pct0.99": {
+      "RADARSAT": {
+          "img_res": {
+              "100": {
+                  "10px": 0.02
+              }
+          },
+          "long_name": "RAMP Radarsat"
+      },
+      "S1": {
+          "img_res": {
+              "40": {
+                  "10px": 0.063,
+                  "25px": 0.051
+              },
+              "100": {
+                  "10px": 0.046
+              }
+          },
+          "long_name": "Sentinel 1 (EW)"
+      }
+  },
+  "pct0.95": {
+      "RADARSAT": {
+          "img_res": {
+              "100": {
+                  "10px": 0.016
+              }
+          },
+          "long_name": "RAMP Radarsat"
+      },
+      "S1": {
+          "img_res": {
+              "40": {
+                  "10px": 0.053,
+                  "25px": 0.041
+              },
+              "100": {
+                  "10px": 0.038
+              }
+          },
+          "long_name": "Sentinel 1 (EW)"
+      }
+  },
+  "mean": {
+    "RADARSAT": {
+        "img_res": {
+            "100": {
+                "10px": 0.009
+            }
+        },
+        "long_name": "RAMP Radarsat"
+    },
+    "S1": {
+        "img_res": {
+            "40": {
+                "10px": 0.037,
+                "25px": 0.030
+            },
+            "100": {
+                "10px": 0.027
+            }
+        },
+        "long_name": "Sentinel 1 (EW)"
+    }
+  }
+}
