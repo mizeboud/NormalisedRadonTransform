@@ -42,6 +42,7 @@ def main(configFile,imageFile):
         tau_type=config['PATHS']['tau_type'] # 'mean' or 'pct095'
         if tau_type != 'mean' or tau_type != 'pct095':
             raise ValueError('Expected threshold type ''mean'' or ''pct095'', got {}'.format(tau_type))
+        print('.. processing with trheshold_type: {}'.format(tau_type))
     except:
         tau_type = None
 
@@ -137,7 +138,8 @@ def main(configFile,imageFile):
                                  dims=("sample","out"), 
                                  coords=(windows_df["sample"], range(8)), 
                                  name="output", 
-                                 attrs=img.attrs, indexes=img.indexes) 
+                                 attrs=img.attrs)# # with update of rioxarray, cannot pass indexes anymore
+                                #  attrs=img.attrs, indexes=img.indexes) 
 
         da_result.attrs['long_name'] = 'Output_NeRD'
         da_result.attrs['descriptions'] = '[theta_1,signal_1, theta_2,signal_2, theta_3,signal_3, theta_4,signal_4]'
