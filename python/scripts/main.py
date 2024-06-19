@@ -38,13 +38,16 @@ def main(configFile,imageFile):
     
     path2threshold = config['PATHS']['path2files']
     threshold_fname= config['PATHS']['threshold_fname']
-    try:
-        tau_type=config['PATHS']['tau_type'] # 'mean' or 'pct095'
-        if tau_type != 'mean' or tau_type != 'pct095':
-            raise ValueError('Expected threshold type ''mean'' or ''pct095'', got {}'.format(tau_type))
-        print('.. processing with trheshold_type: {}'.format(tau_type))
-    except:
-        tau_type = None
+    tau_type=config['PATHS']['tau_type'] # 'mean' or 'pct095'
+    print('.. processing with trheshold_type: {}'.format(tau_type))
+    # try:
+    #     tau_type=config['PATHS']['tau_type'] # 'mean' or 'pct095'
+    #     if tau_type != 'mean' or tau_type != 'pct095':
+    #         raise ValueError('Expected threshold type ''mean'' or ''pct095'', got {}'.format(tau_type))
+    #     print('.. processing with trheshold_type: {}'.format(tau_type))
+    # except:
+    #     print('.. did not read ''tau_type'' in config, continue wth default: mean(crevSiig) thresohld')
+    #     tau_type = None
 
     img_res = int(config['DATA']['imRes'])
     source = config['DATA']['source']
@@ -159,9 +162,12 @@ def main(configFile,imageFile):
         ''' -------
         Save to netCDF
         -----------'''
-        da_result.to_netcdf(os.path.join(outPath,fname_out+'.nc'))
-
-        print('.. output data saved to {}{}------ '.format(outPath,fname_out))
+        try:
+            da_result.to_netcdf(os.path.join(outPath,fname_out+'.nc'))
+            print('.. output data saved to {}{}------ '.format(outPath,fname_out))
+        except:
+            print(f'.. failed saving to netcdf of {fname_out}')
+            pass
 
         ''' -------
         Processing of output 
