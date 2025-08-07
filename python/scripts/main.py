@@ -132,12 +132,18 @@ def main(configFile,imageFile):
         results = df_out # array with (samples,8)
 
         # put back to xarray dataArray to convert back to 2D
-
-        da_result = xr.DataArray(results,
-                                 dims=("sample","out"), 
-                                 coords=(windows_df["sample"], range(8)), 
-                                 name="output", 
-                                 attrs=img.attrs, indexes=img.indexes) 
+        try:
+            da_result = xr.DataArray(results,
+                                    dims=("sample","out"), 
+                                    coords=(windows_df["sample"], range(8)), 
+                                    name="output", 
+                                    attrs=img.attrs, indexes=img.indexes) 
+        except ValueError: # Explicitly passing indexes via the `indexes` argument is not supported when `fastpath=False`. Use the `coords` argument instead.
+            da_result = xr.DataArray(results,
+                                    dims=("sample","out"), 
+                                    coords=(windows_df["sample"], range(8)), 
+                                    name="output", 
+                                    attrs=img.attrs ) 
 
         da_result.attrs['long_name'] = 'Output_NeRD'
         da_result.attrs['descriptions'] = '[theta_1,signal_1, theta_2,signal_2, theta_3,signal_3, theta_4,signal_4]'
