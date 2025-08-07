@@ -39,15 +39,15 @@ def main(configFile,imageFile):
     path2threshold = config['PATHS']['path2files']
     threshold_fname= config['PATHS']['threshold_fname']
     tau_type=config['PATHS']['tau_type'] # 'mean' or 'pct095'
-    print('.. processing with trheshold_type: {}'.format(tau_type))
-    # try:
-    #     tau_type=config['PATHS']['tau_type'] # 'mean' or 'pct095'
-    #     if tau_type != 'mean' or tau_type != 'pct095':
-    #         raise ValueError('Expected threshold type ''mean'' or ''pct095'', got {}'.format(tau_type))
-    #     print('.. processing with trheshold_type: {}'.format(tau_type))
-    # except:
-    #     print('.. did not read ''tau_type'' in config, continue wth default: mean(crevSiig) thresohld')
-    #     tau_type = None
+    # print('.. processing with trheshold_type: {}'.format(tau_type))
+    try:
+        tau_type=config['PATHS']['tau_type'] # 'mean' or 'pct095'
+        if tau_type != 'mean' or tau_type != 'pct095':
+            raise ValueError('Expected threshold type ''mean'' or ''pct095'', got {}'.format(tau_type))
+        print('.. processing with trheshold_type: {}'.format(tau_type))
+    except:
+        print('.. did not read ''tau_type'' in config, continue wth default: mean(crevSiig) thresohld')
+        tau_type = None
 
     img_res = int(config['DATA']['imRes'])
     source = config['DATA']['source']
@@ -136,13 +136,18 @@ def main(configFile,imageFile):
         results = df_out # array with (samples,8)
 
         # put back to xarray dataArray to convert back to 2D
-
-        da_result = xr.DataArray(results,
-                                 dims=("sample","out"), 
-                                 coords=(windows_df["sample"], range(8)), 
-                                 name="output", 
-                                 attrs=img.attrs)# # with update of rioxarray, cannot pass indexes anymore
-                                #  attrs=img.attrs, indexes=img.indexes) 
+        try:
+            da_result = xr.DataArray(results,
+                                    dims=("sample","out"), 
+                                    coords=(windows_df["sample"], range(8)), 
+                                    name="output", 
+                                    attrs=img.attrs, indexes=img.indexes) 
+        except ValueError: # Explicitly passing indexes via the `indexes` argument is not supported when `fastpath=False`. Use the `coords` argument instead.
+            da_result = xr.DataArray(results,
+                                    dims=("sample","out"), 
+                                    coords=(windows_df["sample"], range(8)), 
+                                    name="output", 
+                                    attrs=img.attrs ) # with update of rioxarray, cannot pass indexes anymore
 
         da_result.attrs['long_name'] = 'Output_NeRD'
         da_result.attrs['descriptions'] = '[theta_1,signal_1, theta_2,signal_2, theta_3,signal_3, theta_4,signal_4]'
@@ -162,12 +167,12 @@ def main(configFile,imageFile):
         ''' -------
         Save to netCDF
         -----------'''
-        try:
-            da_result.to_netcdf(os.path.join(outPath,fname_out+'.nc'))
-            print('.. output data saved to {}{}------ '.format(outPath,fname_out))
-        except:
-            print(f'.. failed saving to netcdf of {fname_out}')
-            pass
+        # try:
+        da_result.to_netcdf(os.path.join(outPath,fname_out+'.nc'))
+        #     print('.. output data saved to {}{}------ '.format(outPath,fname_out))
+        # except:
+        #     print(f'.. failed saving to netcdf of {fname_out}')
+        #     pass
 
         ''' -------
         Processing of output 
