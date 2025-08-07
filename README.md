@@ -1,9 +1,9 @@
-Created by Maaike Izeboud (m.izeboud@tudelft.nl | @izeboudmaaike )
+Created by Maaike Izeboud (maaike.izeboud@vub.be | @izeboudmaaike )
 
 # Intro
 This repository provides code for the Normalised Radon Transform Damage (NeRD) detection method.
 The code in this repository accompanies the paper "Damage Detection on Antarctic Ice Shelves
-using the Normalised Radon Transform" by M. Izeboud and S. Lhermitte, in review at Remote Sensing of Environment (2022).
+using the Normalised Radon Transform" by M. Izeboud and S. Lhermitte
 
 # About
 NeRD is an automated method that detects damage and its orientation from a (high resolution) image.
@@ -52,9 +52,16 @@ If an image with filename 'image.tif' is used, NeRD output will have the followi
     `python ./scripts/main.py ./config_files/config_file.ini ./path/to/image.tif`
 
 
-# Example 
+# Example
 <p float="left">
     <img src="/data/imgs/example_S2_median_PiG_2019-12-01_2020-03-01.jpeg" alt="RGB median composite DJF 2019-2020" height="300" />
     <img src="/data/imgs/example_S2_median_PiG_2019-12-01_2020-03-01_angle.jpeg" alt="Detected damage orientation" height="300"/>
     <img src="/data/imgs/example_S2_median_PiG_2019-12-01_2020-03-01_dmg.jpeg" alt="Detected damage" height="300"/>
 </p>
+
+
+# How to cite
+If you use this method in your work, please cite:
+
+Maaike Izeboud and Stef Lhermitte (2023).Damage detection on Antarctic ice shelves using the normalised Radon transform. Remote Sensing of Environment, 284, 113359.
+https://doi.org/10.1016/j.rse.2022.113359
