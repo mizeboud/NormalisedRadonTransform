@@ -4,7 +4,7 @@ cftime==1.6.1
 cycler==0.11.0
 dask==2022.6.1
 earthengine_api==0.1.316
-geopandas==0.11.0
+geopandas==1.1.2
 imbalanced_learn==0.10.1
 ipython==8.12.3
 joblib==1.2.0
